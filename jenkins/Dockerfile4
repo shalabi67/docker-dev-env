@@ -1,0 +1,4 @@
+FROM jenkins:2.46.3-alpine
+MAINTAINER Andrew Hammond <ahammond@anchorfree.com>
+
+RUN /usr/local/bin/install-plugins.sh blueocean blueocean-pipeline-editor cloudbees-folder cluster-stats copyartifact credentials-binding digitalocean-plugin docker-build-step disk-usage docker-workflow embeddable-build-status github github-branch-source github-oauth lockable-resources matrix-auth pegdown-formatter pipeline-milestone-step prometheus rebuild timestamper

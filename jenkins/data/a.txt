@@ -1,0 +1,13 @@
+Sending build context to Docker daemon  8.192kB
+Step 1/11 : FROM jenkins:2.60.2
+ ---> 808f0889a6d3
+Step 2/11 : USER root
+ ---> Using cache
+ ---> 0d3058d8c958
+Step 3/11 : RUN apt-get update       && apt-get install -y sudo       && apt-get install -y nano curl       && rm -rf /var/lib/apt/lists/*
+ ---> Running in 191a35e86fdf
+Ign:1 http://deb.debian.org/debian stretch InRelease
+Get:2 http://deb.debian.org/debian stretch-updates InRelease [88.5 kB]
+Get:3 http://deb.debian.org/debian stretch Release [118 kB]
+Get:4 http://deb.debian.org/debian stretch Release.gpg [2373 B]
+Get:5 http://deb.debian.org/debian stretch/main amd64 Packages [9497 kB]

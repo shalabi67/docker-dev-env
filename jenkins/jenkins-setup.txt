@@ -1,0 +1,11 @@
+Global setting
+Java:
+JAVA_HOME: /docker-java-home
+
+Maven:
+MAVEN_HOME: /usr/share/maven
+
+
+To get maven home director:
+ whereis maven
+
