@@ -1,0 +1,88 @@
+node {
+    try {
+       notify('started', '')
+       def mvnHome
+       stage('Clone sources') { // for display purposes
+         //checkout([$class: 'GitSCM', branches: [[name: '*/First']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '5f3aa4c6-0028-4c7e-90bd-de192d2485d3', url: 'git clone git@bitbucket.org:ebardy/ebardyapi.git']]])
+            git branch: 'First', credentialsId: '5f3aa4c6-0028-4c7e-90bd-de192d2485d3', url: 'git clone git@bitbucket.org:ebardy/ebardyapi.git'
+           mvnHome = tool 'Maven'
+
+           //working
+           // def dockerfile = 'Dockerfile'
+           // def customImage = docker.build("my-image:${env.BUILD_ID}", "-f docker/dev/Dockerfile .")
+       }
+       stage('Build') {
+          sh "'${mvnHome}/bin/mvn' clean install -Dspring.profiles.active=dev"
+
+          //copy jar to docker
+          sh 'cp target/*.jar docker/dev/'
+
+
+          //save workspace to reuse it in another node
+          stash excludes: 'target/classes, target/test-classes', includes: '**', name: 'every-thing'
+       }
+
+        //notify(success)
+       stage('Docker') {
+           dir('docker/dev') {
+                def dockerfile = 'Dockerfile'
+                def customImage = docker.build("ebardy/dev:${env.BUILD_ID}")
+            }
+
+           /*
+           agent {
+                // Equivalent to "docker build -f Dockerfile.build --build-arg version=1.0.2 ./build/
+                dockerfile {
+                    filename 'Dockerfile.build'
+                    dir './docker/dev'
+                    label "my-image:${env.BUILD_ID}"
+                    //additionalBuildArgs  '--build-arg version=1.0.2'
+                }
+            }
+            */
+        }
+
+           /*
+            def dockerfile = 'Dockerfile'
+            def customImage = docker.build("my-image:${env.BUILD_ID}", "-f ${dockerfile} ./docker/dev")
+            */
+
+    }
+    catch(err) {
+        notify("Failed", err)
+    }
+    stage('Archiving jar file') {
+       archiveArtifacts 'target/*.jar'
+       step([$class: 'JUnitResultArchiver', testResults: 'target/surefire-reports/TEST-*.xml'])
+   }
+}
+node('agent1') {
+    sh 'ls'
+    sh 'rm -rf *'
+    unstash 'every-thing'
+    sh 'ls'
+}
+
+stage 'parallel execution'
+parallel firstBranch: {
+        runTests("fast")
+    }, secondBranch: {
+        runTests("slow")
+    },
+    failFast: true
+
+def runTests(stage) {
+    node {
+        sh 'ls'
+        sh 'rm -rf *'
+        unstash 'every-thing'
+        sh 'ls'
+    }
+}
+def notify(status, error) {
+    emailext(
+        to:"mshalabi@ebardy.com",
+        subject:"Build: ${status} Job ${env.JOB_NAME}",
+        body:"${error}"
+        )
+}
